@@ -1,0 +1,53 @@
+
+schemaVersion: 2.1.0
+metadata:
+  name: demo-war
+  version: 1.2.0
+  description: Simple Maven webapp project
+  displayName: Maven Webapp
+  language: Java
+  projectType: maven-webapp
+  tags:
+  - Java
+  - Webapp
+
+
+commands:
+- id: mvn-package
+  exec:
+    commandLine: ./mvnw clean package -Dmaven.test.skip=true
+    component: tools
+    workingDir: ${PROJECT_SOURCE}
+- id: copy-war
+  exec:
+    commandLine: cp target/*.war /usr/local/tomcat/webapps/
+    component: tools
+    workingDir: ${PROJECT_SOURCE}
+- id: build-deploy-war
+  composite:
+    commands:
+      - mvn-package
+      - copy-war
+    group:
+      isDefault: true
+      kind: build
+- id: run
+  exec:
+    commandLine: /usr/local/tomcat/bin/catalina.sh run
+    component: tools
+    hotReloadCapable: true
+    group:
+      isDefault: true
+      kind: run
+    workingDir: ${PROJECT_SOURCE}
+
+components:
+- name: tools
+  container:
+    command: ["tail", "-f", "/dev/null"]
+    endpoints:
+    - name: http-tomcat
+      targetPort: 8080
+    image: docker.io/tomcat:11.0
+    mountSources: true
+
