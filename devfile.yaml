@@ -20,7 +20,7 @@ commands:
     workingDir: ${PROJECT_SOURCE}
 - id: copy-war
   exec:
-    commandLine: cp target/*.war /usr/local/tomcat/webapps/
+    commandLine: cp target/*.war /opt/jws-5.7/tomcat/webapps/
     component: tools
     workingDir: ${PROJECT_SOURCE}
 - id: build-deploy-war
@@ -33,7 +33,7 @@ commands:
       kind: build
 - id: run
   exec:
-    commandLine: /usr/local/tomcat/bin/catalina.sh run
+    commandLine: /opt/jws-5.7/tomcat/bin/launch.sh
     component: tools
     hotReloadCapable: true
     group:
@@ -48,6 +48,6 @@ components:
     endpoints:
     - name: http-tomcat
       targetPort: 8080
-    image: docker.io/tomcat:11.0
+    image: registry.redhat.io/jboss-webserver-5/jws57-openjdk11-openshift-rhel8:5.7.2-7
     mountSources: true
 
