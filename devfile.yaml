@@ -15,15 +15,19 @@ metadata:
 commands:
 - id: mvn-package
   exec:
-    commandLine: ./mvnw clean package -Dmaven.test.skip=true
-    component: tools
+    commandLine: |
+      ./mvnw package \
+        -Dmaven.compiler.source=17 \
+        -Dmaven.compiler.target=11 \
+        -Dmaven.test.skip=true
+    component: builder
     workingDir: ${PROJECT_SOURCE}
 - id: copy-war
   exec:
-    commandLine: cp target/*.war /opt/jws-5.7/tomcat/webapps/
-    component: tools
+    commandLine: cp target/*.war /home/user/artifacts/
+    component: builder
     workingDir: ${PROJECT_SOURCE}
-- id: build-deploy-war
+- id: builder
   composite:
     commands:
       - mvn-package
@@ -31,10 +35,11 @@ commands:
     group:
       isDefault: true
       kind: build
+
 - id: run
   exec:
     commandLine: /opt/jws-5.7/tomcat/bin/launch.sh
-    component: tools
+    component: app-server
     hotReloadCapable: true
     group:
       isDefault: true
@@ -42,12 +47,27 @@ commands:
     workingDir: ${PROJECT_SOURCE}
 
 components:
-- name: tools
+- name: builder
+  container:
+    command: ["tail", "-f", "/dev/null"]
+    image: registry.access.redhat.com/ubi9/openjdk-17:latest
+    mountSources: true
+    volumeMounts:
+    - name: artifacts
+      path: /home/user/artifacts
+
+- name: app-server
   container:
     command: ["tail", "-f", "/dev/null"]
     endpoints:
     - name: http-tomcat
       targetPort: 8080
     image: registry.redhat.io/jboss-webserver-5/jws57-openjdk11-openshift-rhel8:5.7.2-7
-    mountSources: true
+    mountSources: false
+    volumeMounts:
+    - name: artifacts
+      path: /opt/jws-5.7/tomcat/webapps
+
+- name: artifacts
+  volume: {}
 
